@@ -34,6 +34,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Clear Azure CLI session
+        run: az logout || true
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
