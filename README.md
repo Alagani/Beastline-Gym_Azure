@@ -262,3 +262,118 @@ npm run build   # Production build to dist/
 - Local business JSON-LD schema
 - `robots.txt`, `sitemap.xml`
 - Google Search Console verification
+
+
+
+
+
+Objective
+- Set up production-level GitHub Actions CI/CD pipelines for a React+Vite website deployed to Azure Static Web Apps, with Terraform managing Azure infrastructure, all following best practices.
+Important Details
+- Repo: Alagani/Beastline-Gym_Azure on GitHub
+- App: React 19 + Vite 6 + TypeScript + Tailwind CSS 4 SPA for a gym
+- Hosting: Azure Static Web Apps (Free tier)
+- Infra: Terraform managing Azure Resource Group + Static Web App
+- State backend: Azure Blob Storage (rg-terraform-state / sttfstatebl / tfstate)
+- Two isolated pipelines: app files trigger app pipeline, terraform files trigger terraform pipeline
+- OIDC auth for Terraform (no long-lived secrets) — requires AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID in GitHub secrets
+- Federated credential subject: repo:Alagani/Beastline-Gym_Azure:ref:refs/heads/main
+- Bootstrap (terraform/bootstrap/) creates state backend — run once locally, excluded from CI triggers
+- User's local machine: WSL on Windows (/mnt/c/Users/a.jagadeesh/Downloads/beastline - Azure/)
+- Terraform not installed locally; az CLI is installed
+Work State
+Completed
+- Created azure-static-web-apps.yml with path isolation, permissions, concurrency, security audit, deploy gated to push only
+- Created terraform.yml with path isolation, concurrency, id-token: write, OIDC env vars at job level
+- Created terraform/bootstrap/ (main.tf, providers.tf, versions.tf, outputs.tf) for one-time state backend setup
+- Created terraform/backend.tf with use_oidc = true and remote azurerm backend
+- Fixed terraform/bootstrap/main.tf: shortened storage name to sttfstatebl (24 char limit), removed deprecated container_access_type
+- Added descriptions to all Terraform variables
+- Fixed duplicate branches YAML bug in app pipeline PR trigger
+- Isolated both pipelines with paths: filters — app pipeline only runs on src/, public/, config files; terraform pipeline only runs on terraform/**
+- Rewrote README.md with full beginner-friendly setup guide
+- Rewrote terraform/README.md with clear setup instructions
+- Fixed OIDC auth: removed azure/login step, added ARM_USE_OIDC, added use_oidc = true to backend block
+Active
+- User pushed latest fix (use_oidc = true in backend block + removed ARM_USE_CLI) — awaiting pipeline result
+Blocked
+- Terraform pipeline was failing with: Error building ARM Config: Authenticating using the Azure CLI is only supported as a User (not a Service Principal)
+- Latest fix adds use_oidc = true to backend.tf — not yet confirmed working
+- User hasn't confirmed if they've run bootstrap locally yet (creates the Azure Storage Account)
+Next Move
+1. Confirm terraform pipeline passes with the latest fix (use_oidc = true in backend block)
+2. If still failing, check official azurerm backend docs for correct OIDC config
+3. Ensure user has run bootstrap locally: cd terraform/bootstrap && terraform init && terraform apply
+Relevant Files
+- .github/workflows/azure-static-web-apps.yml: App CI/CD pipeline (build + deploy to Azure SWA)
+- .github/workflows/terraform.yml: Terraform CI/CD pipeline (plan on PR, apply on push)
+- terraform/backend.tf: Remote state config with use_oidc = true
+- terraform/main.tf: Resource Group + Static Web App resources
+- terraform/providers.tf: azurerm provider with use_oidc = true
+- terraform/variables.tf: Input variables with descriptions
+- terraform/outputs.tf: Hostname + deployment token outputs
+- terraform/versions.tf: Terraform >=1.6.0, azurerm ~>4.0
+- terraform/.gitignore: Excludes .terraform/, *.tfstate*, terraform.tfvars
+- terraform/bootstrap/main.tf: Storage account + container for state backend
+- terraform/bootstrap/providers.tf, versions.tf, outputs.tf: Bootstrap config
+- terraform/terraform.tfvars: Variable values (resource_group=rg-staticwebapp-dev, location=East Asia)
+- README.md: Full project guide with setup steps
+- terraform/README.md: Terraform-specific setup guide
+- staticwebapp.config.json: Azure SWA routing, security headers, caching
+- .gitignore: Standard exclusions (node_modules, dist, .env)
+▣  Compaction · Big Pickle · 19.8s
++ Thought: 1.8s
+Summary of Our Work
+We've set up production-level CI/CD pipelines for your React+Vite gym website deployed to Azure Static Web Apps with Terraform managing infrastructure.
+What We Completed:
+1. Azure Static Web Apps Pipeline (.github/workflows/azure-static-web-apps.yml)
+- Builds React app on PRs (validation only)
+- Deploys on push to main
+- Path isolation: only triggers on src/, public/, config files
+2. Terraform Pipeline (.github/workflows/terraform.yml)
+- Plans on PRs, applies on push to main
+- OIDC authentication (no long-lived secrets)
+- Path isolation: only triggers on terraform/**
+- Excludes bootstrap directory (run once locally)
+3. Terraform Configuration (terraform/)
+- backend.tf: Remote state with OIDC + Entra ID auth
+- main.tf: Resource Group + Static Web App
+- providers.tf, variables.tf, outputs.tf, versions.tf
+- bootstrap/ for initial state backend setup
+4. Documentation
+- Complete README.md with setup guide
+- terraform/README.md with specific instructions
+Current Status:
+- App pipeline: Working
+- Terraform pipeline: Failed with ARM config error (auth issue)
+- Root cause: Missing use_azuread_auth = true in backend block
+What You Just Fixed:
+Added use_azuread_auth = true to terraform/backend.tf - this is required for OIDC Entra ID authentication according to official Terraform docs.
+Next Steps:
+1. Push the fix and confirm the Terraform pipeline passes
+2. Run bootstrap locally if you haven't already: cd terraform/bootstrap && terraform init && terraform apply
+3. Test the full workflow: Create a PR with terraform changes, verify plan shows, then merge to main for apply
+The pipeline should now work with the use_azuread_auth = true addition.
+
+
+
+This means the service principal lacks permissions on the storage account. OIDC auth with use_azuread_auth = true requires RBAC roles, not storage keys.
+Your app registration needs the Storage Blob Data Contributor role on the storage account. Run this Azure CLI command:
+
+az role assignment create \
+  --role "Storage Blob Data Contributor" \
+  --assignee <YOUR_APP_REGISTRATION_CLIENT_ID> \
+  --scope /subscriptions/<YOUR_SUBSCRIPTION_ID>/resourceGroups/rg-terraform-state/providers/Microsoft.Storage/storageAccounts/sttfstatebl
+Replace <YOUR_APP_REGISTRATION_CLIENT_ID> with your app registration's client ID (the same one stored in AZURE_CLIENT_ID GitHub secret) and <YOUR_SUBSCRIPTION_ID> with your Azure subscription ID.
+
+ Go to portal.azure.com → search for Storage accounts → click sttfstatebl
+2. Click Access control (IAM) in the left menu
+3. Click + Add → Add role assignment
+4. Role tab: search and select Storage Blob Data Contributor → click Next
+5. Members tab:
+- Membership type: User, group, or service principal
+- Click + Select members
+- Search for your app registration name (BeastlineGymPipeline or similar)
+- Select it → click Select
+6. Click Review + assign → Review + assign
+After that, push again and the pipeline should pass.
