@@ -1,36 +1,65 @@
-# Azure Static Web App Terraform
+# Terraform - Azure Infrastructure
 
-## Prerequisites
+Manages the Azure resources for the Beastline Gym website.
 
-Create the remote state backend once before first `terraform apply`:
+## What This Creates
+
+- **Resource Group** — container for Azure resources
+- **Static Web App** — where the website is hosted
+
+## How It Works
+
+### First Time Setup (Bootstrap)
+
+Bootstrap creates a storage account where Terraform saves its state. Run this **once**:
 
 ```bash
 az login
-az group create -n rg-terraform-state -l "East Asia"
-az storage account create -n stterraformstatebeastline -g rg-terraform-state -l "East Asia" --sku Standard_LRS
-az storage container create -n tfstate --account-name stterraformstatebeastline
+cd terraform/bootstrap
+terraform init
+terraform apply
+cd ../
 ```
 
-## GitHub Actions (OIDC)
-
-Create a service principal and add these secrets to the repo:
+Then migrate to remote state:
 
 ```bash
-az ad sp create-for-fid -n "sp-beastline-terraform" --role "Contributor" --scopes "/subscriptions/<SUBSCRIPTION_ID>"
+terraform init -migrate-state
 ```
 
-Add to GitHub repo secrets:
-- `AZURE_CLIENT_ID`
-- `AZURE_TENANT_ID`
-- `AZURE_SUBSCRIPTION_ID`
+### Ongoing Usage
 
-## Usage
+After bootstrap, all Terraform runs happen automatically via GitHub Actions when you push changes to `terraform/`.
+
+To run manually:
 
 ```bash
 cd terraform
-terraform init
-terraform plan
-terraform apply
+terraform plan    # see what would change
+terraform apply   # apply the changes
 ```
 
-Note: GitHub repo connection is completed after provisioning or via AzAPI.
+## Files
+
+| File | Purpose |
+|------|---------|
+| `bootstrap/` | One-time setup — creates the state backend |
+| `main.tf` | Resource group + Static Web App |
+| `backend.tf` | Remote state configuration |
+| `providers.tf` | Azure provider settings |
+| `variables.tf` | Input variables |
+| `outputs.tf` | Output values (hostname, deployment token) |
+| `versions.tf` | Terraform + provider version constraints |
+| `terraform.tfvars` | Your variable values (not committed) |
+
+## GitHub Actions
+
+The `terraform.yml` workflow runs when `terraform/` files change:
+
+- **Pull Request**: runs `terraform plan` only (no changes applied)
+- **Push to main**: runs `terraform apply` (creates/updates resources)
+
+Requires these GitHub secrets:
+- `AZURE_CLIENT_ID`
+- `AZURE_TENANT_ID`
+- `AZURE_SUBSCRIPTION_ID`
