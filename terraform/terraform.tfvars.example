@@ -1,0 +1,9 @@
+resource_group_name="rg-staticwebapp-dev"
+location="East US"
+static_web_app_name="my-static-webapp"
+github_repository_url="https://github.com/johndoe/my-react-app"
+github_branch="main"
+app_location="/"
+api_location=""
+output_location="dist"
+tags={Environment="dev" Project="Demo"}

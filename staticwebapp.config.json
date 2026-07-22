@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json.schemastore.org/staticwebapp.config.json",
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": [
+      "/static/*",
+      "/*.{css,js,svg,png,jpg,jpeg,jfif,gif,webp,ico,woff,woff2,ttf,eot,otf,map,json,xml,txt,html}"
+    ]
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains"
+  },
+  "mimeTypes": {
+    ".jfif": "image/jpeg",
+    ".json": "application/json",
+    ".js": "text/javascript",
+    ".mjs": "text/javascript"
+  },
+  "routes": [
+    {
+      "route": "/index.html",
+      "headers": {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0"
+      }
+    },
+    {
+      "route": "/static/*",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "route": "/*.{css,js,woff,woff2,ttf,eot,otf}",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "route": "/*.{svg,png,jpg,jpeg,jfif,gif,webp,ico}",
+      "headers": {
+        "Cache-Control": "public, max-age=604800"
+      }
+    },
+    {
+      "route": "/robots.txt",
+      "headers": {
+        "Cache-Control": "public, max-age=3600"
+      }
+    },
+    {
+      "route": "/sitemap.xml",
+      "headers": {
+        "Cache-Control": "public, max-age=3600"
+      }
+    }
+  ],
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/index.html",
+      "statusCode": 200
+    }
+  },
+  "platform": {
+    "apiRuntime": "node:18"
+  }
+}
