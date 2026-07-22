@@ -1,23 +1,28 @@
 variable "resource_group_name" {
-  type = string
+  description = "Name of the Azure resource group"
+  type        = string
 }
 
 variable "location" {
-  type = string
+  description = "Azure region for resources"
+  type        = string
 }
 
 variable "static_web_app_name" {
-  type = string
+  description = "Name of the Azure Static Web App"
+  type        = string
 }
 
 variable "sku_tier" {
-  type    = string
-  default = "Free"
+  description = "SKU tier for the Static Web App (Free or Standard)"
+  type        = string
+  default     = "Free"
 }
 
 variable "sku_size" {
-  type    = string
-  default = "Free"
+  description = "SKU size for the Static Web App (Free or Standard)"
+  type        = string
+  default     = "Free"
 }
 
 variable "tags" {
