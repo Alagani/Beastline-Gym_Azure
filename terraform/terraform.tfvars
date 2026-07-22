@@ -1,14 +1,8 @@
 resource_group_name = "rg-staticwebapp-dev"
+subscription_id     = "b2f4370b-28c6-40a2-a873-ae9bf0d6b14f"
 location            = "East Asia"
 
 static_web_app_name = "my-static-webapp"
-
-github_repository_url = "https://github.com/Alagani/Beastline-Gym_Azure"
-github_branch         = "main"
-
-app_location    = "/"
-api_location    = ""
-output_location = "dist"
 
 sku_tier = "Free"
 sku_size = "Free"
