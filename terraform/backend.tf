@@ -4,5 +4,6 @@ terraform {
     storage_account_name = "sttfstatebl"
     container_name       = "tfstate"
     key                  = "beastline.tfstate"
+    use_oidc             = true
   }
 }
