@@ -14,7 +14,7 @@ This is a React + Vite single-page website for a local gym. It includes business
 - Tailwind CSS 4
 - Motion
 - Lucide React
-- GitHub Pages deployment
+- Azure Static Web Apps deployment
 
 ## Business Information
 
@@ -44,38 +44,20 @@ npm run build
 
 ## Deployment
 
-The Vite base path is configured for GitHub Pages:
-
-```ts
-base: '/beastlinegym/'
-```
-
-Deploy with:
-
-```bash
-npm run deploy
-```
-
-The deployed URL is expected to be:
-
-```text
-https://Alagani.github.io/beastlinegym/
-```
+Deployed automatically to Azure Static Web Apps via GitHub Actions on push to `main`.
 
 ## CI/CD Pipeline
 
-GitHub Actions workflow: `.github/workflows/deploy.yml`
+GitHub Actions workflow: `.github/workflows/azure-static-web-apps.yml`
 
 Stages:
 
-1. **Quality:** installs dependencies with `npm ci` and runs `npm run lint`.
-2. **Test:** runs `npm test` when a test script exists; otherwise the stage is skipped safely.
-3. **Security Audit:** runs `npm audit --omit=dev --audit-level=high`.
-4. **Build:** creates the production `dist` output and uploads it as a build artifact.
-5. **Deployment Gate:** allows deployment only for pushes to the `main` branch.
-6. **Deploy:** publishes the approved `dist` artifact to GitHub Pages.
+1. **Install:** `npm ci`
+2. **Lint:** `npm run lint` (TypeScript type check)
+3. **Build:** `npm run build` (Vite production build)
+4. **Deploy:** publishes `dist` to Azure Static Web Apps
 
-Pull requests run quality, test, security, and build stages only. Pushes to `main` run all stages and deploy to GitHub Pages.
+Runs on pushes to `main` and on pull requests (without deploying).
 
 ## SEO Notes
 
