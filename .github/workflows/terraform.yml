@@ -35,9 +35,6 @@ jobs:
   terraform:
     name: Terraform
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: terraform
 
     steps:
       - name: Validate secrets
@@ -56,18 +53,22 @@ jobs:
 
       - name: Terraform fmt
         run: terraform fmt -check
+        working-directory: terraform
         continue-on-error: true
 
       - name: Terraform init
         run: terraform init
+        working-directory: terraform
 
       - name: Terraform validate
         run: terraform validate -no-color
+        working-directory: terraform
 
       - name: Terraform plan
         id: plan
         if: github.event_name == 'pull_request'
         run: terraform plan -input=false -no-color
+        working-directory: terraform
         continue-on-error: true
 
       - name: Comment on PR
@@ -91,3 +92,4 @@ jobs:
       - name: Terraform apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve -input=false
+        working-directory: terraform
