@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type FC } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
 import type { FAQItem } from '../../types';
@@ -8,7 +8,7 @@ interface FAQItemProps {
   answer: string;
 }
 
-function FAQItemComponent({ question, answer }: FAQItemProps) {
+const FAQItemComponent: FC<FAQItemProps> = ({ question, answer }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
