@@ -88,5 +88,3 @@ jobs:
           output_location: "dist"
           api_location: ""
           config_file_path: "staticwebapp.config.json"
-          skip_app_build: true
-          app_build_command: "npm run build"
